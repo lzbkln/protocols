@@ -15,7 +15,7 @@ ID = randint(1, 65535)
 DNSPACK = struct.pack("!HHHHHH", ID, 256, 1, 0, 0, 0) + b"\x06google\x03com\x00\x00\x01\x00\x01"
 TCP_PACKS = OrderedDict([
     ("dns", struct.pack("!H", len(DNSPACK)) + DNSPACK),
-    ("sntp", b'HELO World'),
+    ("smtp", b'HELO World'),
     ("http", b'GET / HTTP/1.1\r\nHost: google.com\r\n\r\n'),
     ("pop3", b"AUTH")
 ])
@@ -30,7 +30,7 @@ def check_pack(pack):
     if pack[:4].startswith(b"HTTP"):
         return 'http'
     elif re.match(b"[0-9]{3}", pack[:3]):
-        return "sntp"
+        return "smtp"
     if struct.pack("!H", ID) in pack:
         return "dns"
     elif pack.startswith(b"+"):
@@ -57,21 +57,6 @@ def is_port_in_use_tcp(addr):
                 return port, check_pack(data)
             except:
                 continue
-
-
-def _scan_udp_port(host, port) -> None:
-    sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.settimeout(1)
-    try:
-        result = sock.connect_ex((host, port))
-        if result == 0:
-            ports.append(f'UDP {port}')
-    except PermissionError:
-        print("\033[31mPermission denied\033[0m")
-    except OSError:
-        pass
-    finally:
-        sock.close()
 
 
 def is_port_in_use_udp(addr):
